@@ -1,0 +1,17 @@
+version: '3'
+services:
+  builder:
+    build:
+      context: ./services/builder
+    volumes:
+      - ./src:/src:z
+      - ./output:/output:z
+  vic20-server:
+    build:
+      context: ./services/vic20-server
+    volumes:
+      - ./output:/var/www/localhost/htdocs/output:z
+      - ./vic20-shell:/var/www/localhost/htdocs/vic20-shell:z
+    ports:
+      - 8088:80
+      

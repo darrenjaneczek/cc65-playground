@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>VIC20 Shell</title>
+    <style>
+      #main {
+        border: black 2px solid; 
+        background: #AAA; 
+        padding: 24px;
+        display: inline-flex;
+      }
+
+      #vic20Frame {
+        border: 16px #CCC inset;
+      }
+
+      #prgSelect {
+        margin-left: 16px;
+        background: black;
+        color: #0FF;
+        font-family: monospace;
+      }
+
+    </style>
+
+
+  </head>
+  <body>
+    <div id="main">
+      <iframe 
+        id="vic20Frame" 
+        height="480"
+        width="580"
+        src="../vic20-emu"
+      ></iframe>
+
+      <select id="prgSelect" disabled="true" size="10" >
+      </select>
+
+    </div>
+    <div>
+      <button onclick="resetOutputList();">Reload output</button>
+      <button onclick="loadSelected();">Load selected</button>    
+    </div>
+
+
+
+
+    <script type="text/javascript">
+      function resetOutputList() {
+        fetch('./cgi-bin/list.sh')
+        .then((response) => response.text())
+        .then((data) => setPrgSelectOptions(data));
+      }
+
+      function setPrgSelectOptions(data) {
+        const lines = data.split("\n");
+
+        const optionsHtmlList = [];
+
+        let currentDirectory = "";
+        
+        for (line of lines) {
+          if (line === "README.md") {
+            continue;
+          }
+          console.log("Processing", line)
+          if (line === "" || currentDirectory === "") {
+            currentDirectory = line.substring(0, line.indexOf(':'));
+            continue;
+          }
+
+          const option = `${currentDirectory}/${line}`;
+          optionsHtmlList.push(
+            `<option value="${option}">${option}</option>`
+          );
+          prgSelect.disabled = optionsHtmlList.length === 0
+          prgSelect.innerHTML = optionsHtmlList.join("");
+        }
+
+      }
+
+      function loadSelected() {
+        const filename = prgSelect.value;
+        fetch(`/${filename}`)
+        .then((response) => response.blob())
+        .then((blob) => {
+          const reader = new FileReader();  
+          reader.onload = event => {
+            const bytes = event.target.result;
+            vic20Frame.contentWindow.audioContextResume();
+            vic20Frame.contentWindow.droppedFile(
+              filename,
+              new Uint8Array(bytes)
+            );
+          }
+          reader.readAsArrayBuffer(blob);
+          vic20Frame.focus();
+        });
+
+      }
+      /*
+      */
+
+      resetOutputList();
+
+    </script>
+
+
+  
+  </body>
+
+
+</html>
+
