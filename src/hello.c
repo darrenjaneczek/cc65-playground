@@ -5,7 +5,7 @@
 
 
 int main(void)
-{
+{ 
   int i;
   int j;
   char volume;
